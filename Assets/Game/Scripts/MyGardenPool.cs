@@ -42,11 +42,19 @@ namespace Pool
 			else
 			{
 				var poolItem = Instantiate(prefab, position, identity, transform);
+				poolItem.OnRelease += PoolItemOnReleaseHandler;
 				poolItem.Transform.localScale = scale;
 				_poolables.Append(poolItem);
 				poolItem.SetActive(true);
 				return poolItem;
 			}
+		}
+
+		private void PoolItemOnReleaseHandler(IPoolable poolable)
+		{
+			poolable.SetActive(false);
+			poolable.Transform.SetParent(transform);
+			poolable.Transform.position = transform.position;
 		}
 	}
 }

@@ -14,6 +14,17 @@ namespace Fruits
 			_fruit = fruit;
 		}
 
+		public bool TryFreeSlot(Fruit fruit)
+		{
+			if(fruit == _fruit)
+			{
+				_fruit = default;
+				return true;
+			}
+
+			return false;
+		}
+
 		public Fruit GetFruit()
 		{
 			if(_fruit == default)

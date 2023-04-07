@@ -1,15 +1,15 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Stack = Stacks.Stack;
 
 public abstract class InteractableArea : MonoBehaviour
 {
 	[SerializeField] private float _activationDelay;
-	
-	private Stack _interactStack;
 
 	private Coroutine _coroutine;
 	private WaitForSeconds _waitForDelay;
+	private Dictionary<Stack, Coroutine> _interactStacks = new();
 
 	private void Start()
 	{
@@ -23,33 +23,39 @@ public abstract class InteractableArea : MonoBehaviour
 			return;
 		}
 
-		_interactStack = stack;
 		if(CheckInteractCondition())
 		{
-			_coroutine = StartCoroutine(ActivationCoroutine());
+			_interactStacks.Add(stack, StartCoroutine(ActivationCoroutine(stack)));
 		}
 	}
 
-	private IEnumerator ActivationCoroutine()
+	private IEnumerator ActivationCoroutine(Stack stack)
 	{
 		yield return _waitForDelay;
-		Intetacted(_interactStack);
+		Interact(stack);
 	}
 
 	private void OnTriggerExit(Collider other)
 	{
-		if(!other.gameObject.TryGetComponent(out Stack _))
+		if(!other.gameObject.TryGetComponent(out Stack stack))
 		{
 			return;
 		}
 
-		StopCoroutine(_coroutine);
-		_interactStack = default;
+		StopInteract(stack);
+		if (!_interactStacks.ContainsKey(stack))
+		{
+			return;
+		}
+
+		var interactCoroutine = _interactStacks[stack];
+		_interactStacks.Remove(stack);
+		StopCoroutine(interactCoroutine);
 	}
 
 	protected abstract bool CheckInteractCondition();
 
-	protected abstract void Intetacted(Stack stack);
+	protected abstract void Interact(Stack stack);
 
-	protected abstract void StopInteract();
+	protected abstract void StopInteract(Stack stack);
 }

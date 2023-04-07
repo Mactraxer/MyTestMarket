@@ -55,7 +55,7 @@ namespace Fruits
 
 		public void FlyTo(Stack stack)
 		{
-			transform.DOJump(stack.Position, 2, 1, 0.5f).OnComplete(() =>
+			transform.DOLocalJump(stack.Position, 2, 1, 0.5f).OnComplete(() =>
 			{
 				OnArrived?.Invoke(this, stack);
 			});
@@ -64,6 +64,11 @@ namespace Fruits
 		public void ChangeParent(Transform transform)
 		{
 			this.transform.SetParent(transform);
+		}
+
+		public void Dispose()
+		{
+			OnRelease?.Invoke(this);
 		}
 	}
 }

@@ -3,7 +3,6 @@ using Pool;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-using Stack = Stacks.Stack;
 
 namespace Plants
 {
@@ -12,22 +11,42 @@ namespace Plants
 		[SerializeField] private FruitSlot[] _fruitPoints;
 		[SerializeField] private Fruit _prefab;
 		[SerializeField] private float _growDelay;
-		[SerializeField] private Stack _stack;
+		[SerializeField] private GardenBedHeap _stack;
 
 		private FruitData _fruitData;
+		private Coroutine _growCoroutine;
+		private bool _isGrow = false;
 
 		public void Setup(FruitData fruitData)
 		{
 			_fruitData = fruitData;
+			_stack.OnRemoveFruit += StackOnRemoveFruitHandler;
+		}
+
+		private void StackOnRemoveFruitHandler(Fruit fruit)
+		{
+			foreach(var slot in _fruitPoints)
+			{
+				if(slot.TryFreeSlot(fruit))
+				{
+					break;
+				}
+			}
+
+			if(_stack.Count == 0 && !_isGrow)
+			{
+				_growCoroutine = StartCoroutine(GrowLoop());
+			}
 		}
 
 		private void OnDestroy()
 		{
-			StopCoroutine(GrowLoop());
+			StopCoroutine(_growCoroutine);
 		}
 
 		private IEnumerator GrowLoop()
 		{
+			_isGrow = true;
 			var waitForGrowDelay = new WaitForSeconds(_growDelay + _fruitData.GrowTime);
 			while(_fruitPoints.Any(slot => !slot.IsBusy))
 			{
@@ -39,6 +58,8 @@ namespace Plants
 				fruit.Grow();
 				slot.SetFruit(fruit);
 			}
+
+			_isGrow = false;
 		}
 
 		private void FruitOnRipeFruitHandler(Fruit fruit)
@@ -48,7 +69,7 @@ namespace Plants
 
 		public void Active()
 		{
-			StartCoroutine(GrowLoop());
+			_growCoroutine = StartCoroutine(GrowLoop());
 		}
 	}
 }

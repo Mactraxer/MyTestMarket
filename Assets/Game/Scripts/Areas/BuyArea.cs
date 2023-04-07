@@ -24,14 +24,14 @@ namespace Areas
 			return MoneyHandler.Instance.GetCount() > _price;
 		}
 
-		protected override void Intetacted(Stack stack)
+		protected override void Interact(Stack stack)
 		{
 			DataStorage.SavePurchase(GetInstanceID());
 			_purchaseGameObject.SetActive(true);
 			gameObject.SetActive(false);
 		}
 
-		protected override void StopInteract()
+		protected override void StopInteract(Stack stack)
 		{
 		}
 	}

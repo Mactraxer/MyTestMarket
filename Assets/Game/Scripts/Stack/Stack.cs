@@ -1,3 +1,4 @@
+using Pool;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace Stacks
 
 		private List<IStackable> _stackables = new();
 
-		public Vector3 Position => _stackables.Count * _offset + _transform.position;
+		public Vector3 Position => _stackables.Count * _offset + _transform.localPosition;
 
 		public int Count => _stackables.Count;
 
@@ -22,20 +23,25 @@ namespace Stacks
 			if (warp)
 			{
 				_stackables.Add(stackable);
+				OnAdded(stackable);
 				stackable.ChangeParent(_transform);
 				OnChangeCount?.Invoke(Count);
 				return;
 			}
 
 			stackable.OnArrived += OnArrivedStackHandler;
+			stackable.ChangeParent(_transform);
 			stackable.FlyTo(this);
 		}
+
+		protected virtual void OnAdded(IStackable stackable) { }
+		protected virtual void OnRemoved(IStackable stackable) { }
 
 		private void OnArrivedStackHandler(IStackable stackable, Stack stack)
 		{
 			_stackables.Add(stackable);
+			OnAdded(stackable);
 			OnChangeCount?.Invoke(Count);
-			stackable.ChangeParent(_transform);
 			stackable.OnArrived -= OnArrivedStackHandler;
 		}
 
@@ -46,7 +52,9 @@ namespace Stacks
 
 			var stackable = _stackables[^1];
 			_stackables.Remove(stackable);
+			OnRemoved(stackable);
 			stackable.OnArrived += OnLeaveStackHandler;
+			stackable.ChangeParent(stack.transform);
 			stackable.FlyTo(stack);
 		}
 
@@ -55,6 +63,17 @@ namespace Stacks
 			OnChangeCount?.Invoke(Count);
 			stack.Add(stackable, true);
 			stackable.OnArrived -= OnLeaveStackHandler;
+		}
+
+		public void DisposeAll()
+		{
+			foreach(var stackable in _stackables)
+			{
+				if(stackable is not IPoolable poolable)
+					continue;
+
+				poolable.Dispose();
+			}
 		}
 	}
 }

@@ -7,6 +7,7 @@
 		public override void Enter(IBuyerStateContext buyerStateContext)
 		{
 			buyerStateContext.OnReceiveAllProducts += OnReceiveAllProductsHandler;
+			buyerStateContext.SetActiveStack(true);
 		}
 
 		private void OnReceiveAllProductsHandler(IBuyerStateContext contex)
@@ -16,6 +17,11 @@
 		}
 
 		public override void Exit(IBuyerStateContext buyerStateContext)
+		{
+			
+		}
+
+		public override void Update(IBuyerStateContext buyerStateContext)
 		{
 			
 		}

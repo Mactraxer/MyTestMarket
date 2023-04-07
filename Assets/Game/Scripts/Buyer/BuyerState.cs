@@ -6,5 +6,6 @@
 		public abstract void Enter(IBuyerStateContext buyerStateContext);
 
 		public abstract void Exit(IBuyerStateContext buyerStateContext);
+		public abstract void Update(IBuyerStateContext buyerStateContext);
 	}
 }

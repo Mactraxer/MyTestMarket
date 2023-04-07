@@ -5,6 +5,7 @@
 		Shelving,
 		ReceiveProducts,
 		BoxOffice,
+		WaitQueue,
 		Pay,
 		Exit
 	}

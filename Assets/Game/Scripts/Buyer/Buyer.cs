@@ -15,6 +15,7 @@ namespace Buyers
 		public event Action<IBuyerStateContext> OnReceiveAllProducts;
 		public event Action<IPoolable> OnRelease;
 		public event Action<IBuyerStateContext> OnEndPay;
+		public event Action<Buyer> OnServiced;
 
 		public int ID => GetInstanceID();
 
@@ -26,11 +27,16 @@ namespace Buyers
 
 		public Vector3 BoxOfficePosition => _boxOfficePoint.position;
 
+		public Vector3 ExitPosition => _exitPoint.position;
+
+		public bool ReadyToPay => _readyToPay;
+
 		[SerializeField] private NavMeshAgent _navigationAgent;
 		[SerializeField] private Stack _stack;
 		[SerializeField] private float _checkArriveDelay;
 		[SerializeField] private float _transferProductDelay;
 		[SerializeField] private RequirementProduct _requirementProduct;
+		[SerializeField] private Collider _collider;
 
 		private Transform _shelvingReceivePoint;
 		private Transform _boxOfficePoint;
@@ -40,6 +46,7 @@ namespace Buyers
 		private WaitForSeconds _waitForCheckArriveDelay;
 		private WaitForSeconds _waitForTransferProductsDelay;
 		private Coroutine _transferProductsCoroutine;
+		private bool _readyToPay;
 
 		public void Setup(Transform shelvingReceivePoint, Transform boxOfficePoint, Transform exitPoint, BoxOffice boxOffice)
 		{
@@ -58,12 +65,12 @@ namespace Buyers
 		{
 			_navigationAgent.SetDestination(position);
 			_navigationAgent.isStopped = false;
-			StartCoroutine(CheckArriveLoop());
+			StartCoroutine(CheckArriveLoop(position));
 		}
 
-		private IEnumerator CheckArriveLoop()
+		private IEnumerator CheckArriveLoop(Vector3 position)
 		{
-			while (_navigationAgent.stoppingDistance > (_navigationAgent.pathEndPosition - _navigationAgent.transform.position).magnitude)
+			while (_navigationAgent.stoppingDistance < (position - _navigationAgent.transform.position).magnitude)
 			{
 				yield return _waitForCheckArriveDelay;
 			}
@@ -87,7 +94,7 @@ namespace Buyers
 				return;
 			}
 
-			_buyerStateMachine.Next();
+			OnReceiveAllProducts?.Invoke(this);
 		}
 
 		private void BuyerStateMachineStatesEndedHandler()
@@ -100,9 +107,9 @@ namespace Buyers
 			_buyerStateMachine.Next();
 		}
 
-		public void ReadyToPay()
+		public void RouteToBoxOffice()
 		{
-			_buyerStateMachine.Next();
+			_buyerStateMachine.Update();
 		}
 
 		public void StartPay()
@@ -124,6 +131,7 @@ namespace Buyers
 
 		private void BoxOfficeOnTakeBoxHandler()
 		{
+			OnServiced?.Invoke(this);
 			_boxOffice.OnTakeBox -= BoxOfficeOnTakeBoxHandler;
 			NextState();
 		}
@@ -131,6 +139,26 @@ namespace Buyers
 		public void Active()
 		{
 			_buyerStateMachine.Start();
+		}
+
+		public void Dispose()
+		{
+			OnRelease?.Invoke(this);
+		}
+
+		public void WaitQueue()
+		{
+			_boxOffice.AddToQueue(this);
+		}
+
+		public void FirstInQueue()
+		{
+			_readyToPay = true;
+		}
+
+		public void SetActiveStack(bool active)
+		{
+			_collider.enabled = active;
 		}
 	}
 }

@@ -1,48 +1,43 @@
-using Areas;
-using Fruits;
-using Plants;
 using Resources;
 using Stacks;
 using UnityEngine;
 
-namespace Garden
+namespace Shelvings
 {
-	public class GardenBed : MonoBehaviour
+	public class Shelving : MonoBehaviour
 	{
-		[SerializeField] private BuyArea _buyArea;
 		[SerializeField] private ActionArea _actionArea;
-		[SerializeField] private FruitData _fruitData;
 		[SerializeField] private ResourceTrasporter _resourceTrasporter;
-		[SerializeField] private Plant _plant;
 		[SerializeField] private Stack _stack;
 
-		private void Start()
+		private void Start () 
 		{
-			_plant.Setup(_fruitData);
-			_plant.Active();
-
 			_actionArea.OnStartAction += ActionAreaOnStartActionHandler;
 			_actionArea.OnStopAction += ActionAreaOnStopActionHandler;
 		}
 
 		private void ActionAreaOnStopActionHandler(Stack stack)
 		{
-			if(stack is not PlayerStack)
+			if(stack is PlayerStack)
 			{
-				return;
+				_resourceTrasporter.StopTransfer(stack, _stack);
 			}
-
-			_resourceTrasporter.StopTransfer(_stack, stack);
+			else
+			{
+				_resourceTrasporter.StopTransfer(_stack, stack);
+			}
 		}
 
 		private void ActionAreaOnStartActionHandler(Stack stack)
 		{
-			if(stack is not PlayerStack)
+			if(stack is PlayerStack)
 			{
-				return;
+				_resourceTrasporter.StartTransfer(stack, _stack);
 			}
-
-			_resourceTrasporter.StartTransfer(_stack, stack);
+			else
+			{
+				_resourceTrasporter.StartTransfer(_stack, stack);
+			}
 		}
 	}
 }

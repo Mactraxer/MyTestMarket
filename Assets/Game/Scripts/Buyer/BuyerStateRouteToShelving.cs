@@ -6,8 +6,8 @@
 
 		public override void Enter(IBuyerStateContext buyerStateContext)
 		{
-			buyerStateContext.RouteTo(buyerStateContext.ShelvingPosition);
 			buyerStateContext.OnArrived += BuyerOnArrivedHandler;
+			buyerStateContext.RouteTo(buyerStateContext.ShelvingPosition);
 		}
 
 		private void BuyerOnArrivedHandler(IBuyerStateContext buyerStateContext)
@@ -17,6 +17,11 @@
 		}
 
 		public override void Exit(IBuyerStateContext buyerStateContext)
+		{
+			
+		}
+
+		public override void Update(IBuyerStateContext buyerStateContext)
 		{
 			
 		}

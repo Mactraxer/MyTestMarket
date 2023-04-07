@@ -7,6 +7,7 @@
 		public override void Enter(IBuyerStateContext buyerStateContext)
 		{
 			buyerStateContext.OnArrived += BuyerOnArrivedHandler;
+			buyerStateContext.RouteTo(buyerStateContext.BoxOfficePosition);
 		}
 
 		private void BuyerOnArrivedHandler(IBuyerStateContext context)
@@ -16,6 +17,11 @@
 		}
 
 		public override void Exit(IBuyerStateContext buyerStateContext)
+		{
+			
+		}
+
+		public override void Update(IBuyerStateContext buyerStateContext)
 		{
 			
 		}

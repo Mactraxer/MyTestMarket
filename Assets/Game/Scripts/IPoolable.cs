@@ -10,5 +10,6 @@ namespace Pool
 		public bool IsActive { get; }
 		public Transform Transform { get; }
 		public void SetActive(bool active);
+		public void Dispose();
 	}
 }

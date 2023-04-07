@@ -1191,6 +1191,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6777638709036544885, guid: a776b80e35d40164aa3705019c3d1956,
+        type: 3}
+      propertyPath: _maxBoundForRespawnBuyer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6777638709036544885, guid: a776b80e35d40164aa3705019c3d1956,
+        type: 3}
+      propertyPath: _minBoundForRespawnBuyer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 7314950906521386027, guid: a776b80e35d40164aa3705019c3d1956,
         type: 3}
       propertyPath: m_Name

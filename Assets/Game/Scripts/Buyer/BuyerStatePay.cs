@@ -20,5 +20,10 @@
 		{
 			
 		}
+
+		public override void Update(IBuyerStateContext buyerStateContext)
+		{
+			
+		}
 	}
 }
