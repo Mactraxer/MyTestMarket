@@ -24,8 +24,6 @@ namespace Buyers
 
 		public void Next()
 		{
-			_state.Exit(_context);
-
 			switch(_state.Type)
 			{
 				case BuyerStateType.Shelving:

@@ -53,7 +53,7 @@ namespace Resources
 				return false;
 			}
 
-			ChangeAmount(amount);
+			ChangeAmount(-amount);
 			return true;
 		}
 

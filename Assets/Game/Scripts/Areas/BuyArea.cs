@@ -27,6 +27,8 @@ namespace Areas
 		protected override void Interact(Stack stack)
 		{
 			DataStorage.SavePurchase(GetInstanceID());
+			if(!MoneyHandler.Instance.TrySpend(_price))
+				return;
 			_purchaseGameObject.SetActive(true);
 			gameObject.SetActive(false);
 		}

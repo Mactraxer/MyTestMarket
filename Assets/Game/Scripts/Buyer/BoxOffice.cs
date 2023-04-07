@@ -1,4 +1,7 @@
-﻿using Buyers;
+﻿using Areas;
+using Buyers;
+using DG.Tweening;
+using MyExtensions;
 using Pool;
 using Stacks;
 using System;
@@ -19,6 +22,8 @@ namespace BoxOffices
 
 		private Queue<Buyer> _buyersQueue = new();
 		private bool _isReadyToServiceBuyer = false;
+		private BoxProducts _boxProduct;
+		private Sequence _boxScaleSequence;
 
 		public Stack Stack => _stack;
 
@@ -46,7 +51,7 @@ namespace BoxOffices
 			{
 				return;
 			}
-
+			TryGetProductBox();
 			var buyer = _buyersQueue.Dequeue();
 			buyer.FirstInQueue();
 			buyer.RouteToBoxOffice();
@@ -59,26 +64,43 @@ namespace BoxOffices
 
 		public void AddToQueue(Buyer buyer)
 		{
-			if(_buyersQueue.Count == 0 && _isReadyToServiceBuyer)
-			{
-				buyer.RouteToBoxOffice();
-			}
-
+			TryGetProductBox();
 			_buyersQueue.Enqueue(buyer);
+			if(_buyersQueue.Count == 1 && _isReadyToServiceBuyer)
+			{
+				TryServiceBuyer();
+				return;
+			}
+		}
+
+		private void TryGetProductBox()
+		{
+			if(_boxProduct == default)
+			{
+				_boxProduct = MyGardenPool.Insance.Get(_boxProductsPrefab, _stack.Position, Quaternion.identity, Vector3.zero, _stack.Transform, false);
+				_boxScaleSequence = DOTween.Sequence();
+				_boxScaleSequence.Append(_boxProduct.transform.DOScale(Vector3.one, 0.4f));
+				_boxScaleSequence.Append(_boxProduct.transform.DOScale(Vector3.one * 1.15f, 0.2f));
+				_boxScaleSequence.Append(_boxProduct.transform.DOScale(Vector3.one, 0.1f));
+				_boxProduct.OnArrived += BoxProductsOnArrivedHandler;
+			}
 		}
 
 		public void ReceiveBoxWithProducts(Stack stack)
 		{
-			var boxProduct = MyGardenPool.Insance.Get(_boxProductsPrefab, _stack.Position, Quaternion.identity, Vector3.one);
-			boxProduct.OnArrived += BoxProductsOnArrivedHandler;
-			stack.Add(boxProduct);
+			_stack.Clear();
+			stack.Add(_boxProduct);
 		}
 
 		private void BoxProductsOnArrivedHandler(IStackable stackable, Stack stack)
 		{
-			stackable.OnArrived -= BoxProductsOnArrivedHandler;
+			_boxProduct.OnArrived -= BoxProductsOnArrivedHandler;
+			_boxProduct = default;
 			OnTakeBox?.Invoke();
-			TryServiceBuyer();
+			this.ActionWithDelay(0.7f, () =>
+			{
+				TryServiceBuyer();
+			});
 		}
 	}
 }

@@ -19,10 +19,11 @@ namespace Fruits
 		private FruitData _fruitData;
 		private Sequence _growSequence;
 		private bool _isRipe;
+		private int _poolId;
 
 		public bool IsRipe => _isRipe;
 
-		public int ID => GetInstanceID();
+		public int PoolID => _poolId;
 
 		public bool IsActive => gameObject.activeSelf;
 
@@ -69,6 +70,11 @@ namespace Fruits
 		public void Dispose()
 		{
 			OnRelease?.Invoke(this);
+		}
+
+		public void SetId(int id)
+		{
+			_poolId = id;
 		}
 	}
 }

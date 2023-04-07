@@ -3,7 +3,7 @@ using Stacks;
 
 public class BoxOfficeStack : Stack
 {
-	protected override void OnAdded(IStackable stackable)
+/*	protected override void OnAdded(IStackable stackable)
 	{
 		base.OnAdded(stackable);
 
@@ -11,5 +11,5 @@ public class BoxOfficeStack : Stack
 		{
 			poolable.Dispose();
 		}
-	}
+	}*/
 }

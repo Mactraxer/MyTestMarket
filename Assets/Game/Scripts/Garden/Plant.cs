@@ -12,14 +12,13 @@ namespace Plants
 		[SerializeField] private Fruit _prefab;
 		[SerializeField] private float _growDelay;
 		[SerializeField] private GardenBedHeap _stack;
+		[SerializeField] private FruitData _fruitData;
 
-		private FruitData _fruitData;
 		private Coroutine _growCoroutine;
 		private bool _isGrow = false;
 
-		public void Setup(FruitData fruitData)
+		private void Start()
 		{
-			_fruitData = fruitData;
 			_stack.OnRemoveFruit += StackOnRemoveFruitHandler;
 		}
 
@@ -44,6 +43,11 @@ namespace Plants
 			StopCoroutine(_growCoroutine);
 		}
 
+		private void OnEnable()
+		{
+			_growCoroutine = StartCoroutine(GrowLoop());
+		}
+
 		private IEnumerator GrowLoop()
 		{
 			_isGrow = true;
@@ -52,7 +56,7 @@ namespace Plants
 			{
 				yield return waitForGrowDelay;
 				var slot = _fruitPoints.First(slot => !slot.IsBusy);
-				var fruit = MyGardenPool.Insance.Get(_prefab, slot.transform.position, Quaternion.identity, Vector3.zero);
+				var fruit = MyGardenPool.Insance.Get(_prefab, slot.transform.position, Quaternion.identity, Vector3.zero, _stack.Transform);
 				fruit.OnRipeFruit += FruitOnRipeFruitHandler;
 				fruit.Setup(_fruitData);
 				fruit.Grow();
@@ -64,11 +68,17 @@ namespace Plants
 
 		private void FruitOnRipeFruitHandler(Fruit fruit)
 		{
+			fruit.OnRipeFruit -= FruitOnRipeFruitHandler;
 			_stack.Add(fruit, true);
 		}
 
 		public void Active()
 		{
+			if(!gameObject.activeSelf)
+			{
+				return;
+			}
+
 			_growCoroutine = StartCoroutine(GrowLoop());
 		}
 	}

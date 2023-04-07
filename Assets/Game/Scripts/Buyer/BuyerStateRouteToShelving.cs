@@ -16,11 +16,6 @@
 			buyerStateContext.NextState();
 		}
 
-		public override void Exit(IBuyerStateContext buyerStateContext)
-		{
-			
-		}
-
 		public override void Update(IBuyerStateContext buyerStateContext)
 		{
 			

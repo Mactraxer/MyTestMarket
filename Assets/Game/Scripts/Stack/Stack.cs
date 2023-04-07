@@ -11,15 +11,25 @@ namespace Stacks
 
 		[SerializeField] private Vector3 _offset;
 		[SerializeField] private Transform _transform;
+		[SerializeField] private int _capacity;
 
-		private List<IStackable> _stackables = new();
+		[SerializeField] private List<IStackable> _stackables = new();
 
-		public Vector3 Position => _stackables.Count * _offset + _transform.localPosition;
+		public Vector3 Position => _stackables.Count * _offset;
 
 		public int Count => _stackables.Count;
 
+		public bool Max => Count == _capacity;
+
+		public Transform Transform => _transform;
+
 		public void Add(IStackable stackable, bool warp = false)
 		{
+			if(_stackables.Count == _capacity)
+			{
+				return;
+			}
+
 			if (warp)
 			{
 				_stackables.Add(stackable);
@@ -31,6 +41,7 @@ namespace Stacks
 
 			stackable.OnArrived += OnArrivedStackHandler;
 			stackable.ChangeParent(_transform);
+			_stackables.Add(stackable);
 			stackable.FlyTo(this);
 		}
 
@@ -39,7 +50,6 @@ namespace Stacks
 
 		private void OnArrivedStackHandler(IStackable stackable, Stack stack)
 		{
-			_stackables.Add(stackable);
 			OnAdded(stackable);
 			OnChangeCount?.Invoke(Count);
 			stackable.OnArrived -= OnArrivedStackHandler;
@@ -52,28 +62,36 @@ namespace Stacks
 
 			var stackable = _stackables[^1];
 			_stackables.Remove(stackable);
+			stack.Add(stackable, true);
 			OnRemoved(stackable);
 			stackable.OnArrived += OnLeaveStackHandler;
-			stackable.ChangeParent(stack.transform);
+			stackable.ChangeParent(stack.Transform);
 			stackable.FlyTo(stack);
 		}
 
 		private void OnLeaveStackHandler(IStackable stackable, Stack stack)
 		{
 			OnChangeCount?.Invoke(Count);
-			stack.Add(stackable, true);
+			
 			stackable.OnArrived -= OnLeaveStackHandler;
 		}
 
-		public void DisposeAll()
+		public void Setup(int count)
+		{
+			_capacity = count;
+		}
+
+		public void Clear()
 		{
 			foreach(var stackable in _stackables)
 			{
-				if(stackable is not IPoolable poolable)
-					continue;
+				if(stackable is IPoolable poolable)
+				{
+					poolable.Dispose();
+				}
+			} 
 
-				poolable.Dispose();
-			}
+			_stackables.Clear();
 		}
 	}
 }

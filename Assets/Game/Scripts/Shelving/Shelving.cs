@@ -1,3 +1,4 @@
+using Areas;
 using Resources;
 using Stacks;
 using UnityEngine;

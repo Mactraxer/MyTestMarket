@@ -8,7 +8,9 @@ namespace BoxOffices
 {
 	public class BoxProducts : MonoBehaviour, IStackable, IPoolable
 	{
-		public int ID => GetInstanceID();
+		private int _poolId;
+
+		public int PoolID => _poolId;
 
 		public bool IsActive => gameObject.activeSelf;
 
@@ -38,6 +40,11 @@ namespace BoxOffices
 		public void SetActive(bool active)
 		{
 			gameObject.SetActive(active);
+		}
+
+		public void SetId(int id)
+		{
+			_poolId = id;
 		}
 	}
 }

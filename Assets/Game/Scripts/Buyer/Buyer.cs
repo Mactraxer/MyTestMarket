@@ -17,7 +17,7 @@ namespace Buyers
 		public event Action<IBuyerStateContext> OnEndPay;
 		public event Action<Buyer> OnServiced;
 
-		public int ID => GetInstanceID();
+		public int PoolID => _poolId;
 
 		public bool IsActive => gameObject.activeSelf;
 
@@ -32,11 +32,13 @@ namespace Buyers
 		public bool ReadyToPay => _readyToPay;
 
 		[SerializeField] private NavMeshAgent _navigationAgent;
+		[SerializeField] private float _maxSpeed;
 		[SerializeField] private Stack _stack;
 		[SerializeField] private float _checkArriveDelay;
 		[SerializeField] private float _transferProductDelay;
 		[SerializeField] private RequirementProduct _requirementProduct;
 		[SerializeField] private Collider _collider;
+		[SerializeField] private BuyerAnimation _buyerAnimation;
 
 		private Transform _shelvingReceivePoint;
 		private Transform _boxOfficePoint;
@@ -45,8 +47,8 @@ namespace Buyers
 		private BuyerStateMachine _buyerStateMachine;
 		private WaitForSeconds _waitForCheckArriveDelay;
 		private WaitForSeconds _waitForTransferProductsDelay;
-		private Coroutine _transferProductsCoroutine;
 		private bool _readyToPay;
+		private int _poolId;
 
 		public void Setup(Transform shelvingReceivePoint, Transform boxOfficePoint, Transform exitPoint, BoxOffice boxOffice)
 		{
@@ -54,6 +56,7 @@ namespace Buyers
 			_boxOfficePoint = boxOfficePoint;
 			_exitPoint = exitPoint;
 			_boxOffice = boxOffice;
+			_stack.Setup(_requirementProduct.Count);
 		}
 
 		public void SetActive(bool active)
@@ -63,8 +66,8 @@ namespace Buyers
 
 		public void RouteTo(Vector3 position)
 		{
-			_navigationAgent.SetDestination(position);
 			_navigationAgent.isStopped = false;
+			_navigationAgent.SetDestination(position);
 			StartCoroutine(CheckArriveLoop(position));
 		}
 
@@ -75,6 +78,7 @@ namespace Buyers
 				yield return _waitForCheckArriveDelay;
 			}
 
+			_navigationAgent.isStopped = true;
 			OnArrived?.Invoke(this);
 		}
 
@@ -87,8 +91,19 @@ namespace Buyers
 			_stack.OnChangeCount += StackOnChangeCountHandler;
 		}
 
+		private void Update()
+		{
+			_buyerAnimation.SetSpeed(_navigationAgent.velocity.magnitude);
+		}
+
+		private void OnDisable()
+		{
+			_buyerAnimation.PickDown();
+		}
+
 		private void StackOnChangeCountHandler(int count)
 		{
+			_buyerAnimation.PickUp();
 			if (count < _requirementProduct.Count)
 			{
 				return;
@@ -99,6 +114,7 @@ namespace Buyers
 
 		private void BuyerStateMachineStatesEndedHandler()
 		{
+			_stack.Clear();
 			OnRelease?.Invoke(this);
 		}
 
@@ -114,7 +130,7 @@ namespace Buyers
 
 		public void StartPay()
 		{
-			_transferProductsCoroutine = StartCoroutine(TransferProductsLoop());
+			StartCoroutine(TransferProductsLoop());
 		}
 
 		private IEnumerator TransferProductsLoop()
@@ -125,6 +141,7 @@ namespace Buyers
 				_stack.Remove(_boxOffice.Stack);
 			}
 
+			yield return new WaitForSeconds(0.9f);
 			_boxOffice.OnTakeBox += BoxOfficeOnTakeBoxHandler;
 			_boxOffice.ReceiveBoxWithProducts(_stack);
 		}
@@ -159,6 +176,11 @@ namespace Buyers
 		public void SetActiveStack(bool active)
 		{
 			_collider.enabled = active;
+		}
+
+		public void SetId(int id)
+		{
+			_poolId = id;
 		}
 	}
 }

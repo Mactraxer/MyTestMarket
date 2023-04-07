@@ -34,7 +34,7 @@ public class Level : MonoBehaviour
 			yield return waitForDelay;
 			if(_buyers.Count < _maxBuyers)
 			{
-				var buyer = MyGardenPool.Insance.Get(_buyerPrefab, _startPoint.position, Quaternion.identity, Vector3.one);
+				var buyer = MyGardenPool.Insance.Get(_buyerPrefab, _startPoint.position, Quaternion.identity, Vector3.one, transform);
 				buyer.OnServiced += BuyerOnServicedHandler;
 				buyer.Setup(_shelvingPoint, _boxOfficePoint, _exitPoint, _boxOffice);
 				buyer.Active();

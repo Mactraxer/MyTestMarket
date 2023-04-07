@@ -1,23 +1,27 @@
 using Stacks;
 using System;
 
-public class ActionArea : InteractableArea
+namespace Areas
 {
-	public event Action<Stack> OnStartAction;
-	public event Action<Stack> OnStopAction;
-
-	protected override bool CheckInteractCondition()
+	public class ActionArea : InteractableArea
 	{
-		return true;
-	}
+		public event Action<Stack> OnStartAction;
 
-	protected override void Interact(Stack stack)
-	{
-		OnStartAction?.Invoke(stack);
-	}
+		public event Action<Stack> OnStopAction;
 
-	protected override void StopInteract(Stack stack)
-	{
-		OnStopAction?.Invoke(stack);
+		protected override bool CheckInteractCondition()
+		{
+			return true;
+		}
+
+		protected override void Interact(Stack stack)
+		{
+			OnStartAction?.Invoke(stack);
+		}
+
+		protected override void StopInteract(Stack stack)
+		{
+			OnStopAction?.Invoke(stack);
+		}
 	}
 }

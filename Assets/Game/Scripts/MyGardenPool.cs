@@ -7,7 +7,8 @@ namespace Pool
 {
 	public class MyGardenPool : MonoBehaviour
 	{
-		[SerializeField] private List<IPoolable> _poolables = new();
+		private HashSet<IPoolable> _poolables = new();
+		private Dictionary<int, Queue<IPoolable>> _poolItems = new();
 
 		private static MyGardenPool _instance;
 
@@ -28,30 +29,111 @@ namespace Pool
 
 		public static GameObject PoolGameObject { get; private set; }
 
-		public T Get<T>(T prefab, Vector3 position, Quaternion identity, Vector3 scale) where T : Object, IPoolable
+		public T Get<T>(T prefab, Vector3 position, Quaternion identity, Vector3 scale, Transform parent, bool inWorldCoordinate = true) where T : Object, IPoolable
 		{
-			if(_poolables.Any(item => !item.IsActive))
+			var queue = GetQueue(prefab.GetInstanceID());
+			T poolItem;
+			if (queue.Count > 0)
 			{
-				var poolItem = (T)_poolables.First(item => !item.IsActive);
+				poolItem = (T) queue.Dequeue();
+				poolItem.Transform.SetParent(parent);
+				if(inWorldCoordinate)
+				{
+					poolItem.Transform.position = position;
+					poolItem.Transform.rotation = identity;
+				}
+				else
+				{
+					poolItem.Transform.localPosition = position;
+					poolItem.Transform.localRotation = identity;
+				}
+
+				poolItem.Transform.localScale = scale;
+				poolItem.SetActive(true);
+				_poolables.Add(poolItem);
+				return poolItem;
+			}
+
+			poolItem = Instantiate(prefab, parent);
+			poolItem.SetId(prefab.GetInstanceID());
+			if(inWorldCoordinate)
+			{
 				poolItem.Transform.position = position;
 				poolItem.Transform.rotation = identity;
+			}
+			else
+			{
+				poolItem.Transform.localPosition = position;
+				poolItem.Transform.localRotation = identity;
+			}
+
+			poolItem.OnRelease += PoolItemOnReleaseHandler;
+			poolItem.Transform.localScale = scale;
+			_poolables.Add(poolItem);
+			poolItem.SetActive(true);
+			return poolItem;
+/*
+			if(_poolables.Any(item => !item.IsActive && item is T))
+			{
+				var poolItem = (T)_poolables.First(item => !item.IsActive && item is T);
+				poolItem.Transform.SetParent(parent);
+				if(inWorldCoordinate)
+				{
+					poolItem.Transform.position = position;
+					poolItem.Transform.rotation = identity;
+				}
+				else
+				{
+					poolItem.Transform.localPosition = position;
+					poolItem.Transform.localRotation = identity;
+				}
+
 				poolItem.Transform.localScale = scale;
 				poolItem.SetActive(true);
 				return poolItem;
 			}
 			else
 			{
-				var poolItem = Instantiate(prefab, position, identity, transform);
+				var poolItem = Instantiate(prefab, parent);
+				if(inWorldCoordinate)
+				{
+					poolItem.Transform.position = position;
+					poolItem.Transform.rotation = identity;
+				}
+				else
+				{
+					poolItem.Transform.localPosition = position;
+					poolItem.Transform.localRotation = identity;
+				}
+				
 				poolItem.OnRelease += PoolItemOnReleaseHandler;
 				poolItem.Transform.localScale = scale;
-				_poolables.Append(poolItem);
+				_poolables.Add(poolItem);
 				poolItem.SetActive(true);
 				return poolItem;
+			}*/
+		}
+
+		private Queue<IPoolable> GetQueue(int id)
+		{
+			if(_poolItems.TryGetValue(id, out var queue))
+			{
+				return queue;
 			}
+
+			queue = new Queue<IPoolable>();
+			_poolItems.Add(id, queue);
+
+			return queue;
 		}
 
 		private void PoolItemOnReleaseHandler(IPoolable poolable)
 		{
+			var queue = GetQueue(poolable.PoolID);
+			if(!queue.Contains(poolable))
+				queue.Enqueue(poolable);
+			_poolables.Remove(poolable);
+
 			poolable.SetActive(false);
 			poolable.Transform.SetParent(transform);
 			poolable.Transform.position = transform.position;

@@ -8,13 +8,11 @@ namespace Resources
 	public class ResourceTrasporter : MonoBehaviour
 	{
 		[SerializeField] private float _transferDelayBetweenProducts;
+
 		private Queue<TransferTicket> _buyersTicketQueue = new();
-		private Stack _playerStack;
-		private Stack _sourceStack;
 		private Coroutine _buyerTransferProductsCoroutine;
 		private Coroutine _playerTrasnferCoroutine;
 		private WaitForSeconds _waitForDelay;
-		private bool _isTransferring;
 
 		private void Start()
 		{
@@ -68,7 +66,7 @@ namespace Resources
 			while(true)
 			{
 				yield return _waitForDelay;
-				if(sourceStack.Count > 0)
+				if(sourceStack.Count > 0 && !destinationStack.Max)
 				{
 					sourceStack.Remove(destinationStack);
 				}
