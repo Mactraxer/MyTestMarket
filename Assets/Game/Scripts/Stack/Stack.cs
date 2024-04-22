@@ -22,8 +22,8 @@ namespace Stacks
 		public bool Max => Count == _capacity;
 
 		public Transform Transform => _transform;
-
-		public void Add(IStackable stackable, bool warp = false)
+  
+  		public void Add(IStackable stackable, bool warp = false)
 		{
 			if(_stackables.Count == _capacity)
 			{
@@ -45,16 +45,6 @@ namespace Stacks
 			stackable.FlyTo(this);
 		}
 
-		protected virtual void OnAdded(IStackable stackable) { }
-		protected virtual void OnRemoved(IStackable stackable) { }
-
-		private void OnArrivedStackHandler(IStackable stackable, Stack stack)
-		{
-			OnAdded(stackable);
-			OnChangeCount?.Invoke(Count);
-			stackable.OnArrived -= OnArrivedStackHandler;
-		}
-
 		public void Remove(Stack stack)
 		{
 			if(_stackables.Count < 1)
@@ -67,13 +57,6 @@ namespace Stacks
 			stackable.OnArrived += OnLeaveStackHandler;
 			stackable.ChangeParent(stack.Transform);
 			stackable.FlyTo(stack);
-		}
-
-		private void OnLeaveStackHandler(IStackable stackable, Stack stack)
-		{
-			OnChangeCount?.Invoke(Count);
-			
-			stackable.OnArrived -= OnLeaveStackHandler;
 		}
 
 		public void Setup(int count)
@@ -92,6 +75,23 @@ namespace Stacks
 			} 
 
 			_stackables.Clear();
+		}
+  
+  		protected virtual void OnAdded(IStackable stackable) { }
+		protected virtual void OnRemoved(IStackable stackable) { }
+
+		private void OnArrivedStackHandler(IStackable stackable, Stack stack)
+		{
+			OnAdded(stackable);
+			OnChangeCount?.Invoke(Count);
+			stackable.OnArrived -= OnArrivedStackHandler;
+		}
+
+		private void OnLeaveStackHandler(IStackable stackable, Stack stack)
+		{
+			OnChangeCount?.Invoke(Count);
+			
+			stackable.OnArrived -= OnLeaveStackHandler;
 		}
 	}
 }
